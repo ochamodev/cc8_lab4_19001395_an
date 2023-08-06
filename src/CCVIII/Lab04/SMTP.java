@@ -11,7 +11,7 @@ import java.util.logging.Handler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import CCVIII.Lab04.data.DatabaseConnection;
+import CCVIII.Lab04.data.SQLiteConnection;
 
 import static java.lang.System.err;
 import static java.lang.System.out;
@@ -29,6 +29,8 @@ public class SMTP {
         out.println( this.getClass() );
         LOGGERServer = this.initLogger(LOGGERServer, this.getClass().getName());
         LOGGERClient = this.initLogger(LOGGERClient, ClientHandler.class.getName());
+        SQLiteConnection.getInstance().setLogger(LOGGERServer);
+        SQLiteConnection.getInstance().initDb();
         pool = Executors.newFixedThreadPool(count);
         try {
             serverSocket = new ServerSocket(PORT);
@@ -66,6 +68,7 @@ public class SMTP {
         try {
             while (true) {
                 Socket clientSocket = serverSocket.accept();
+                LOGGERServer.log(Level.INFO, "INIT DATABASE");
                 LOGGERServer.log(Level.INFO, "IP Client [" + clientSocket.getInetAddress().getHostAddress() + "]");
                 ClientHandler clientHandler = new ClientHandler(clientSocket, LOGGERClient);
                 pool.execute(clientHandler);

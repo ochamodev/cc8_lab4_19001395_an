@@ -1,2 +1,2 @@
-Main-Class: CCVIII.SMTP
+Main-Class: CCVIII.Lab04.SMTP
 Class-Path: lib/javax.mail-1.6.2.jar lib/sqlite-jdbc-3.42.0.0.jar

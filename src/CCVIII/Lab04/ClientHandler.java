@@ -12,6 +12,8 @@ import java.util.logging.Handler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.logging.SimpleFormatter;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import static java.lang.System.err;
 import static java.lang.System.out;
@@ -36,15 +38,24 @@ public class ClientHandler implements Runnable {
         try {
             BufferedReader reader = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
             PrintWriter writer = new PrintWriter(clientSocket.getOutputStream(), true);
-
             String requestLine;
             StringBuilder requestBuilder = new StringBuilder();
+            writer.format("%s 220 %s Service Ready %s", Constants.ANSI_YELLOW, Constants.SERVER_DOMAIN, Constants.CRLR);
             while ((requestLine = reader.readLine()) != null && !requestLine.isEmpty()) {
             	requestBuilder.append(requestLine).append("\n");
+                Pattern heloPattern = Pattern.compile(Commands.HELO_COMMAND);
+                Matcher heloMatcher = heloPattern.matcher(requestLine);
+                if (heloMatcher.matches()) {
+                    String domain = heloMatcher.group(1);
+                    if (domain.equals(Constants.SERVER_DOMAIN)) {
+                        writer.format("%s Hello %domain, I am glad to meet you %s", StatusCodes.STATUS_250, domain, Constants.CRLR);
+                    } else {
+                        writer.format("%s Domain mismatch. Your HELO domain does not match the server's domain. %s", StatusCodes.STATUS_550, Constants.CRLR);
+                    }
+                } 
             }
             LOGGER.log(Level.INFO, "[Request]\n\r" + requestBuilder.toString().trim());  
-            writer.println("HTTP/1.1 200 OK\r\n\r\nHello, world!");
-            
+
             reader.close();
             writer.close();
             clientSocket.close();
